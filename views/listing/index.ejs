@@ -1,0 +1,27 @@
+<% layout('/layouts/boilerplate') %>
+<body>
+<h1 style="margin: 2rem">All Listings</h1>
+
+    <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1">
+        <% for (let list of hotels) { %>
+            <a href="/listing/<%= list.id%>" class="text-decoration-none">
+                <div class="card col">
+                    <img src="<%= list.image %>" class="card-img-top z-0" alt="..." style="height: 21rem; width: 21rem">
+                    <div class="card-img-overlay"></div>
+                    <div class="card-body">
+                        <h5 class="card-title text-capitalize"><b><%= list.title %></b></h5>
+                        <p class="fw-semibold text-capitalize"><%= list.location %>,<%= list.country %></p>
+                        <p class="fw-bold" >&#36;<%= list.price.toLocaleString("en-US") %>/night</p>
+                    </div>
+                </div>
+            </a>
+        <% } %>
+    </div>
+
+
+
+
+
+
+</body>
+

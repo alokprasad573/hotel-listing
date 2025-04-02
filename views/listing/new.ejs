@@ -1,0 +1,49 @@
+<% layout('/layouts/boilerplate') %>
+<body>
+
+<div class="row p-2 offset-2 ">
+    <h1>Create Listing</h1>
+    <div class="col-8 mt-3">
+        <form method="POST" action="/listing">
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" class="form-control" id="title" placeholder="enter title" name="list[title]">
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" rows="3" name="list[description]"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="image" class="form-label">Image</label>
+                <input type="url" class="form-control" id="image" placeholder="enter imageURL/Link" name="list[image]">
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="price" class="form-label">Price</label>
+                    <input type="number" class="form-control" placeholder="1200" id="price" name="list[price]">
+                </div>
+
+                <div class="col-md-8">
+                    <label for="country" class="form-label">Country</label>
+                    <input type="text" class="form-control" id="country" placeholder="India" name="list[country]">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="location" class="form-label">Location</label>
+                <input type="text" class="form-control" id="location" placeholder="Jodhpur,Rajasthan"
+                       name="list[location]">
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button type="reset" class="btn btn-outline-danger">Reset</button>
+                <button type="submit" class="btn btn-outline-danger">List</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+
