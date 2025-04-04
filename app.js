@@ -3,10 +3,15 @@ const app = express();
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const Listing = require("./models/listings.js");
+const HomeList = require("./models/home.js");
 const path = require('path');
 const {urlencoded} = require("express");
 const methodOverride = require("method-override");
 const engine = require('ejs-mate')
+const wrapAsync = require("./utlis/wrapAsync.js");
+const ExpressError = require("./utlis/ExpressError.js");
+const  listingSchema  = require('./schema.js');
+
 
 
 dotenv.config();
@@ -25,30 +30,31 @@ app.engine('ejs', engine);
 //Connecting to Database
 let DbConnect = async () => {
     await mongoose.connect(process.env.MONGO_URI);
+};
+
+const validateListing = (req, res, next) => {
+    let { error } = listingSchema.validate(req.body);
+    if (error) {
+        let errMsg = error.details.map ( (el) => el.message).join(",");
+        throw new ExpressError(400, error);
+    } else {
+        next();
+    }
 }
 
-app.listen(PORT, () => {
-    console.log(`http://localhost:${PORT}`);
-
-    DbConnect().then(() => {
-       console.log(`${process.env.MONGO_URI}`);
-    }).catch((err) => {
-        console.log(err);
-    })
-})
-
-
-//Home route
-app.get("/", (req, res) => {
-    res.send("This is home page");
-});
+//home route
+app.get('/home', wrapAsync( async (req, res) => {
+   const homelist = await HomeList.find({})
+    res.status(200).render('./listing/home.ejs', { hotels : homelist });
+}));
 
 
 //index route
-app.get('/listing', async (req, res) => {
+app.get('/listing', wrapAsync (async (req, res) => {
     const hotels = await Listing.find({});
     res.status(200).render('./listing/index.ejs', { hotels });
-});
+
+}));
 
 
 //new route
@@ -57,38 +63,68 @@ app.get('/listing/new', (req, res) => {
 });
 
 
-//show route
-app.get('/listing/:id', async (req, res) => {
-    let id = req.params.id;
-    const hotel = await Listing.findById(id);
-    res.status(200).render('./listing/show.ejs', { hotel });
-});
+//Show route
+app.get('/listing/:id', wrapAsync (async (req, res) => {
+    try {
+        let id = req.params.id;
+        const hotel = await Listing.findById(id);
+        res.status(200).render('./listing/show.ejs', { hotel });
+    } catch (err) {
+        next(err);
+    }
+}));
 
-app.post('/listing', async (req, res) => {
+
+//Create Route
+app.post('/listing', validateListing, wrapAsync (async (req, res) => {
+
     const newList = new Listing(req.body.list);
     await newList.save()
-    res.redirect('/listing')
-});
+    res.redirect('/listing');
 
+}));
 
-//edit route
-app.get('/listing/:id/edit/', async (req, res) => {
+//Edit route
+app.get('/listing/:id/edit/', wrapAsync (async (req, res) => {
     let id = req.params.id;
     const data = await Listing.findById(id);
     res.status(200).render('./listing/edit.ejs', { data });
-});
+}));
 
-//update route
-app.put('/listing/:id', async (req, res) => {
+//Update route
+app.put('/listing/:id', validateListing, wrapAsync( async (req, res) => {
     let id = req.params.id;
     let update = req.body.list;
     await Listing.findByIdAndUpdate(id,{...update})
     res.redirect(`/listing/${id}`);
-});
+}));
 
-//delete route
-app.delete('/listing/:id/delete', async (req, res) => {
+//Delete route
+app.delete('/listing/:id/delete', wrapAsync(async (req, res) => {
     let id = req.params.id;
     await Listing.findByIdAndDelete(id);
-    res.redirect(`/listing`);
+    res.render('./listing/delete.ejs', { message: "Listing deleted successfully!" });
+}));
+
+
+app.all('*', (req, res,next) => {
+    next(new ExpressError(404,'Page Not Found'));
+})
+
+app.use((err, req, res, next) => {
+    let { statusCode = 500, message = 'Something went wrong' } = err;
+    res.status(statusCode).render('./listing/error.ejs', { message: message });
+    // res.status(statusCode).send(message);
 });
+
+
+app.listen(PORT, () => {
+    console.log(`http://localhost:${PORT}home`);
+
+    DbConnect().then(() => {
+        console.log(`${process.env.MONGO_URI}`);
+    }).catch((err) => {
+        console.log(err);
+    })
+})
+

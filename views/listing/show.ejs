@@ -10,7 +10,7 @@
             <h3 class="mt-2"><%= hotel.title %></h3>
             <p><%= hotel.description %></p>
             <p class="fw-semibold text-capitalize"><%= hotel.location %>,<%= hotel.country %></p>
-            <p class="fw-bold">&#36;<%= hotel.price.toLocaleString("en-US") %>/night</p>
+            <p class="fw-bold">&#36;<%= hotel.price %>/night</p>
         </div>
         <div class="btns">
             <a href="/listing/<%= hotel.id %>/edit" class="text-decoration-none">
@@ -22,6 +22,4 @@
         </div>
     </div>
 </div>
-
-
 </body>

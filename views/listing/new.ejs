@@ -4,38 +4,58 @@
 <div class="row p-2 offset-2 ">
     <h1>Create Listing</h1>
     <div class="col-8 mt-3">
-        <form method="POST" action="/listing">
+        <form method="POST" action="/listing" novalidate class="needs-validation">
             <div class="mb-3">
                 <label for="title" class="form-label">Title</label>
-                <input type="text" class="form-control" id="title" placeholder="enter title" name="list[title]">
+                <input type="text" class="form-control" id="title" placeholder="enter title" name="list[title]" required>
+                <div class="valid-feedback">
+                    Title Looks Good!
+                </div>
+                <div class="invalid-feedback">
+                    Please enter Title
+                </div>
             </div>
 
             <div class="mb-3">
                 <label for="description" class="form-label">Description</label>
-                <textarea class="form-control" id="description" rows="3" name="list[description]"></textarea>
+                <textarea class="form-control" id="description" rows="3" name="list[description]" required></textarea>
+                <div class="invalid-feedback">
+                    Write a short description of your listing.
+                </div>
             </div>
 
             <div class="mb-3">
                 <label for="image" class="form-label">Image</label>
-                <input type="url" class="form-control" id="image" placeholder="enter imageURL/Link" name="list[image]">
+                <input type="url" class="form-control" id="image" placeholder="enter imageURL/Link" name="list[image]" required>
+                <div class="invalid-feedback">
+                    Give Image URL of your listing.
+                </div>
             </div>
 
             <div class="row mb-3">
                 <div class="col-md-4">
                     <label for="price" class="form-label">Price</label>
-                    <input type="number" class="form-control" placeholder="1200" id="price" name="list[price]">
+                    <input type="text" class="form-control" placeholder="1200" id="price" name="list[price]" required>
+                    <div class="invalid-feedback">
+                        Please enter a valid price.
+                    </div>
                 </div>
 
                 <div class="col-md-8">
                     <label for="country" class="form-label">Country</label>
-                    <input type="text" class="form-control" id="country" placeholder="India" name="list[country]">
+                    <input type="text" class="form-control" id="country" placeholder="India" name="list[country]" required>
+                    <div class="invalid-feedback">
+                        Enter a valid Country of Residence.
+                    </div>
                 </div>
             </div>
 
             <div class="mb-3">
                 <label for="location" class="form-label">Location</label>
-                <input type="text" class="form-control" id="location" placeholder="Jodhpur,Rajasthan"
-                       name="list[location]">
+                <input type="text" class="form-control" id="location" placeholder="Jodhpur,Rajasthan" name="list[location]" required>
+                <div class="invalid-feedback">
+                    Enter Location of Residence.
+                </div>
             </div>
 
             <div class="d-flex justify-content-between">
