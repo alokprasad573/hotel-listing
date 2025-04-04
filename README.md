@@ -1,77 +1,142 @@
 # Hotel Listing Application
 
-A web application for managing and displaying hotel listings, built with Node.js, Express, and MongoDB.
+A full-stack web application for managing hotel listings with CRUD operations.
 
 ## Features
 
-- Hotel listing management
-- User-friendly interface
-- Database integration with MongoDB
-- Environment variable configuration
-- Server-side rendering with EJS templates
+- View all hotel listings
+- Add new hotel listings
+- Edit existing hotel listings
+- Delete hotel listings
+- Detailed view of individual hotels
+- Input validation using Joi
+- Error handling middleware
+- MongoDB database integration
+- EJS templating for server-side rendering
 
 ## Tech Stack
 
 - **Backend**: Node.js, Express.js
 - **Database**: MongoDB with Mongoose
-- **Template Engine**: EJS with EJS-Mate
+- **Frontend**: EJS templates
 - **Validation**: Joi
-- **Environment Management**: dotenv
+- **Environment**: dotenv
+- **Development**: nodemon
 
-## Prerequisites
+## API Endpoints
 
-- Node.js (v14 or higher)
-- MongoDB
-- npm or yarn
+- `GET /home` - Home page with featured listings
+- `GET /listing` - View all hotel listings
+- `GET /listing/new` - Form to create new listing
+- `POST /listing` - Create new hotel listing
+- `GET /listing/:id` - View specific hotel details
+- `GET /listing/:id/edit` - Edit form for specific hotel
+- `PUT /listing/:id` - Update hotel listing
+- `DELETE /listing/:id/delete` - Delete hotel listing
 
-## Installation
+## Setup
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd hotel-listing
-```
-
-2. Install dependencies:
+1. Install dependencies:
 ```bash
 npm install
 ```
 
-3. Create a `.env` file in the root directory with the following variables:
+2. Create a `.env` file with:
 ```
-MONGODB_URI=your_mongodb_connection_string
-PORT=3000
+MONGO_URI=your_mongodb_connection_string
+PORT=8000
 ```
 
-4. Start the development server:
+3. Start the development server:
 ```bash
 npm run dev
 ```
 
-The application will be available at `http://localhost:3000`
+4. Access the application at `http://localhost:8000/home`
 
 ## Project Structure
 
 ```
 hotel-listing/
-├── init/           # Initialization scripts
-├── models/         # Database models
+├── models/         # Database models (listings.js, home.js)
 ├── public/         # Static assets
-├── utlis/          # Utility functions
+├── utlis/          # Utility functions (wrapAsync, ExpressError)
 ├── views/          # EJS templates
-├── app.js          # Main application file
-├── schema.js       # Database schemas
-└── package.json    # Project dependencies
+│   └── listing/    # Hotel listing views
+├── schema.js       # Joi validation schemas
+└── app.js          # Main application file
 ```
+
+## Error Handling
+
+The application includes custom error handling for:
+- 404 Not Found errors
+- Input validation errors
+- Database operation errors
 
 ## Development
 
-The application uses nodemon for development, which automatically restarts the server when changes are detected.
+The application uses nodemon for automatic server restarts during development. Run `npm run dev` to start the development server.
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+We welcome contributions to this project! Here's how you can help:
+
+1. **Fork the Repository**
+   - Click the 'Fork' button on the top right of the repository page
+   - This creates a copy of the project in your GitHub account
+
+2. **Clone Your Fork**
+   ```bash
+   git clone https://github.com/your-username/hotel-listing.git
+   cd hotel-listing
+   ```
+
+3. **Create a New Branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+4. **Make Your Changes**
+   - Follow the existing code style
+   - Add comments where necessary
+   - Update documentation if needed
+
+5. **Test Your Changes**
+   - Ensure all existing tests pass
+   - Add new tests for your features
+   - Test the application locally
+
+6. **Commit Your Changes**
+   ```bash
+   git add .
+   git commit -m "Description of your changes"
+   ```
+
+7. **Push to Your Fork**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+8. **Create a Pull Request**
+   - Go to the original repository
+   - Click 'New Pull Request'
+   - Select your branch
+   - Add a clear description of your changes
+   - Submit the pull request
+
+### Guidelines for Contributors
+
+- Follow the existing code style and conventions
+- Write clear, descriptive commit messages
+- Keep pull requests focused on a single feature or fix
+- Update documentation as needed
+- Be responsive to feedback and review comments
+
+### Reporting Issues
+
+If you find a bug or have a feature request:
+1. Check if the issue already exists
+2. Create a new issue with a clear title and description
+3. Include steps to reproduce if it's a bug
+4. Add relevant screenshots or error messages
