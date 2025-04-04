@@ -68,10 +68,6 @@ hotel-listing/
 
 The application uses nodemon for development, which automatically restarts the server when changes are detected.
 
-## License
-
-ISC
-
 ## Contributing
 
 1. Fork the repository
