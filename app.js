@@ -3,16 +3,17 @@ const app = express();
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const Listing = require("./models/listings.js");
-const HomeList = require("./models/home.js");
+const Review = require("./models/review.js");
 const path = require('path');
 const {urlencoded} = require("express");
 const methodOverride = require("method-override");
 const engine = require('ejs-mate')
 const wrapAsync = require("./utlis/wrapAsync.js");
 const ExpressError = require("./utlis/ExpressError.js");
-const  listingSchema  = require('./schema.js');
+const  { listingSchema }  = require('./schema.js');
+const  { reviewSchema } = require('./schema.js');
 
-
+const listingroutes = require('./routes/listingroutes.js');
 
 dotenv.config();
 const PORT = process.env.PORT || 8000;
@@ -32,11 +33,12 @@ let DbConnect = async () => {
     await mongoose.connect(process.env.MONGO_URI);
 };
 
-const validateListing = (req, res, next) => {
-    let { error } = listingSchema.validate(req.body);
+//Function for server side validation
+const validateReview = (req, res, next) => {
+    let { error } = reviewSchema.validate(req.body);
     if (error) {
         let errMsg = error.details.map ( (el) => el.message).join(",");
-        throw new ExpressError(400, error);
+        throw new ExpressError(400, errMsg);
     } else {
         next();
     }
@@ -44,67 +46,43 @@ const validateListing = (req, res, next) => {
 
 //home route
 app.get('/home', wrapAsync( async (req, res) => {
-   const homelist = await HomeList.find({})
-    res.status(200).render('./listing/home.ejs', { hotels : homelist });
+    res.status(200).render('./listing/home.ejs');
 }));
 
+app.use('/listing', listingroutes);
 
-//index route
-app.get('/listing', wrapAsync (async (req, res) => {
-    const hotels = await Listing.find({});
-    res.status(200).render('./listing/index.ejs', { hotels });
+//Review route
+//Post Route
 
-}));
+app.delete('/listing/:id/reviews/:reviewId',  wrapAsync( async (req, res) => {
+    let { id, reviewId } = req.params;
+    await Listing.findByIdAndUpdate(id, {$pull: {reviews : reviewId}});
+    await Review.findByIdAndDelete(reviewId);
 
-
-//new route
-app.get('/listing/new', (req, res) => {
-    res.status(200).render('./listing/new.ejs');
-});
-
-
-//Show route
-app.get('/listing/:id', wrapAsync (async (req, res) => {
-    try {
-        let id = req.params.id;
-        const hotel = await Listing.findById(id);
-        res.status(200).render('./listing/show.ejs', { hotel });
-    } catch (err) {
-        next(err);
-    }
-}));
-
-
-//Create Route
-app.post('/listing', validateListing, wrapAsync (async (req, res) => {
-
-    const newList = new Listing(req.body.list);
-    await newList.save()
-    res.redirect('/listing');
-
-}));
-
-//Edit route
-app.get('/listing/:id/edit/', wrapAsync (async (req, res) => {
-    let id = req.params.id;
-    const data = await Listing.findById(id);
-    res.status(200).render('./listing/edit.ejs', { data });
-}));
-
-//Update route
-app.put('/listing/:id', validateListing, wrapAsync( async (req, res) => {
-    let id = req.params.id;
-    let update = req.body.list;
-    await Listing.findByIdAndUpdate(id,{...update})
     res.redirect(`/listing/${id}`);
 }));
 
-//Delete route
-app.delete('/listing/:id/delete', wrapAsync(async (req, res) => {
-    let id = req.params.id;
-    await Listing.findByIdAndDelete(id);
-    res.render('./listing/delete.ejs', { message: "Listing deleted successfully!" });
+app.post('/listing/:id/reviews', validateReview, wrapAsync( async (req, res) => {
+      const listing = await Listing.findById(req.params.id);
+      let newReview = new Review(req.body.reviews);
+      listing.reviews.push(newReview);
+      await newReview.save();
+      await listing.save();
+
+     res.redirect(`/listing/${listing._id}`);
 }));
+
+
+//Delete Review Route
+app.delete('/listing/:id/reviews/:reviewId',  wrapAsync( async (req, res) => {
+    let { id, reviewId } = req.params;
+    await Listing.findByIdAndUpdate(id, {$pull: {reviews : reviewId}});
+    await Review.findByIdAndDelete(reviewId);
+
+    res.redirect(`/listing/${id}`);
+}));
+
+
 
 
 app.all('*', (req, res,next) => {
@@ -114,12 +92,11 @@ app.all('*', (req, res,next) => {
 app.use((err, req, res, next) => {
     let { statusCode = 500, message = 'Something went wrong' } = err;
     res.status(statusCode).render('./listing/error.ejs', { message: message });
-    // res.status(statusCode).send(message);
 });
 
 
 app.listen(PORT, () => {
-    console.log(`http://localhost:${PORT}home`);
+    console.log(`http://localhost:${PORT}/home`);
 
     DbConnect().then(() => {
         console.log(`${process.env.MONGO_URI}`);

@@ -4,7 +4,7 @@
     <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1">
         <% for (let list of hotels) { %>
             <a href="/listing/<%= list.id%>" class="text-decoration-none">
-                <div class="card col">
+                <div class="card col listing-card">
                     <img src="<%= list.image %>" class="card-img-top z-0" alt="..." style="height: 21rem; width: 21rem">
                     <div class="card-img-overlay"></div>
                     <div class="card-body">
