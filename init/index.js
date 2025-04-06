@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
-const ListingData = require("./listingdata.js");
+const initData = require("./listingdata.js");
 const Listing = require("../models/listings.js");
-const HomeData = require("./homedata.js");
-const HomeList = require("../models/home.js");
+const User = require("../models/user.js");
+
 
 const MONGODB_URI = "mongodb://localhost:27017/HotelFinder";
 
@@ -19,9 +19,11 @@ DbConnect().then(() => {
 
 const initDB = async () => {
     await Listing.deleteMany({});
-    await Listing.insertMany(ListingData.data);
-    await HomeList.deleteMany({});
-    await HomeList.insertMany(HomeData.data);
+    initData.data = initData.data.map( (obj) => ({
+        ...obj,
+        owner: res.locals.currentUser ? res.locals.currentUser._id : null
+    }));
+    let res = await Listing.insertMany(initData.data);
 }
 
 

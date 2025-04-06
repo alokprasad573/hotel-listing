@@ -3,46 +3,33 @@ const router = express.Router({mergeParams: true});
 const Listing = require("../models/listings.js");
 const wrapAsync = require("../utlis/wrapAsync.js");
 const ExpressError = require("../utlis/ExpressError.js");
-const  { listingSchema }  = require('../schema.js');
-
-//Function for server side validation
-const validateListing = (req, res, next) => {
-    let { error } = listingSchema.validate(req.body);
-    if (error) {
-        let errMsg = error.details.map ( (el) => el.message).join(",");
-
-        throw new ExpressError(400, errMsg);
-    } else {
-        next();
-    }
-}
-
-
+const {listingSchema} = require('../schema.js');
+const {isLoggedIn, isOwner, validateListing} = require('../middleware.js');
 
 //index route
-router.get('/', wrapAsync (async (req, res) => {
+router.get('/', wrapAsync(async (req, res) => {
     const hotels = await Listing.find({});
-    res.status(200).render('./listing/index.ejs', { hotels });
+    res.status(200).render('./listing/index.ejs', {hotels});
 
 }));
 
 
 //new route
-router.get('/new', (req, res) => {
+router.get('/new', isLoggedIn, (req, res) => {
     res.status(200).render('./listing/new.ejs');
 });
 
 
 //Show route
-router.get('/:id', wrapAsync (async (req, res, next) => {
+router.get('/:id', wrapAsync(async (req, res, next) => {
     try {
         let id = req.params.id;
-        const hotel = await Listing.findById(id).populate('reviews');
-        if(!hotel) {
+        const hotel = await Listing.findById(id).populate({path: "reviews", populate: {path : "author"}}).populate("owner");
+        if (!hotel) {
             req.flash('error', 'Listing does not exist!');
             res.redirect('/listing');
         } else {
-            res.status(200).render('./listing/show.ejs', { hotel });
+            res.status(200).render('./listing/show.ejs', {hotel, currUser: req.user});
         }
 
     } catch (err) {
@@ -52,8 +39,9 @@ router.get('/:id', wrapAsync (async (req, res, next) => {
 
 
 //Create Route
-router.post('/', validateListing, wrapAsync (async (req, res) => {
+router.post('/', isLoggedIn, validateListing, wrapAsync(async (req, res) => {
     const newList = new Listing(req.body.list);
+    newList.owner = req.user._id;
     await newList.save()
     req.flash("success", "New Listing created!.")
     res.redirect('/listing');
@@ -61,23 +49,25 @@ router.post('/', validateListing, wrapAsync (async (req, res) => {
 }));
 
 //Edit route
-router.get('/:id/edit/', wrapAsync (async (req, res) => {
+router.get('/:id/edit/',isLoggedIn, isOwner, wrapAsync(async (req, res) => {
     let id = req.params.id;
     const data = await Listing.findById(id);
-    res.status(200).render('./listing/edit.ejs', { data });
+    res.status(200).render('./listing/edit.ejs', {data});
 }));
 
 //Update route
-router.put('/:id', validateListing, wrapAsync( async (req, res) => {
+router.put('/:id',
+    isLoggedIn,
+    isOwner,
+    validateListing, wrapAsync(async (req, res) => {
     let id = req.params.id;
-    let update = req.body.list;
-    await Listing.findByIdAndUpdate(id,{...update})
+    await Listing.findByIdAndUpdate(id, {...req.body.list})
     req.flash("success", "Listing updated!.")
     res.redirect(`/listing/${id}`);
 }));
 
 //Delete route
-router.delete('/:id/delete', wrapAsync(async (req, res) => {
+router.delete('/:id/delete', isLoggedIn, isOwner, wrapAsync(async (req, res) => {
     let id = req.params.id;
     await Listing.findByIdAndDelete(id);
     req.flash("success", "Listing deleted!.")
