@@ -2,86 +2,86 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const Listing = require("./models/listings.js");
-const Review = require("./models/review.js");
 const path = require('path');
 const {urlencoded} = require("express");
 const methodOverride = require("method-override");
 const engine = require('ejs-mate')
-const wrapAsync = require("./utlis/wrapAsync.js");
+const session = require('express-session');
+const flash = require('connect-flash');
 const ExpressError = require("./utlis/ExpressError.js");
-const  { listingSchema }  = require('./schema.js');
-const  { reviewSchema } = require('./schema.js');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const User = require('./models/user.js');
 
-const listingroutes = require('./routes/listingroutes.js');
+const listingRoute = require('./routes/listingroutes.js');
+const reviewRoute = require('./routes/reviewroutes.js');
+const userRoute = require('./routes/userroutes.js');
+
 
 dotenv.config();
 const PORT = process.env.PORT || 8000;
-
-app.set("view engine", 'ejs');
-app.set("views", path.join(__dirname, "views"));
-
-app.use(urlencoded({ extended: true }));
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
-app.use(methodOverride("_method"));
-
-app.engine('ejs', engine);
 
 //Connecting to Database
 let DbConnect = async () => {
     await mongoose.connect(process.env.MONGO_URI);
 };
 
-//Function for server side validation
-const validateReview = (req, res, next) => {
-    let { error } = reviewSchema.validate(req.body);
-    if (error) {
-        let errMsg = error.details.map ( (el) => el.message).join(",");
-        throw new ExpressError(400, errMsg);
-    } else {
-        next();
+app.listen(PORT, () => {
+    console.log(`http://localhost:${PORT}/home`);
+
+    DbConnect().then(() => {
+        console.log(`${process.env.MONGO_URI}`);
+    }).catch((err) => {
+        console.log(err);
+    })
+});
+
+
+app.set("view engine", 'ejs');
+app.set("views", path.join(__dirname, "views"));
+app.engine('ejs', engine);
+
+app.use(urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+app.use(methodOverride("_method"));
+
+//Sessions
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
     }
-}
-
-//home route
-app.get('/home', wrapAsync( async (req, res) => {
-    res.status(200).render('./listing/home.ejs');
 }));
 
-app.use('/listing', listingroutes);
+//Passport initialization
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
-//Review route
-//Post Route
-
-app.delete('/listing/:id/reviews/:reviewId',  wrapAsync( async (req, res) => {
-    let { id, reviewId } = req.params;
-    await Listing.findByIdAndUpdate(id, {$pull: {reviews : reviewId}});
-    await Review.findByIdAndDelete(reviewId);
-
-    res.redirect(`/listing/${id}`);
-}));
-
-app.post('/listing/:id/reviews', validateReview, wrapAsync( async (req, res) => {
-      const listing = await Listing.findById(req.params.id);
-      let newReview = new Review(req.body.reviews);
-      listing.reviews.push(newReview);
-      await newReview.save();
-      await listing.save();
-
-     res.redirect(`/listing/${listing._id}`);
-}));
+//Flash
+app.use(flash());
+app.use((req, res, next) => {
+    res.locals.success = req.flash('success');
+    res.locals.error = req.flash('error');
+    next();
+});
 
 
-//Delete Review Route
-app.delete('/listing/:id/reviews/:reviewId',  wrapAsync( async (req, res) => {
-    let { id, reviewId } = req.params;
-    await Listing.findByIdAndUpdate(id, {$pull: {reviews : reviewId}});
-    await Review.findByIdAndDelete(reviewId);
+app.get('/', (req, res) => {
+    res.send('I am root.')
+})
 
-    res.redirect(`/listing/${id}`);
-}));
 
+app.use('/listing', listingRoute);
+app.use('/listing/:id/reviews', reviewRoute);
+app.use('/', userRoute);
 
 
 
@@ -95,13 +95,5 @@ app.use((err, req, res, next) => {
 });
 
 
-app.listen(PORT, () => {
-    console.log(`http://localhost:${PORT}/home`);
 
-    DbConnect().then(() => {
-        console.log(`${process.env.MONGO_URI}`);
-    }).catch((err) => {
-        console.log(err);
-    })
-})
 

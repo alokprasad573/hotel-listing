@@ -1,9 +1,9 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router({mergeParams: true});
 const Listing = require("../models/listings.js");
 const wrapAsync = require("../utlis/wrapAsync.js");
 const ExpressError = require("../utlis/ExpressError.js");
-const  { listingSchema, reviewSchema }  = require('../schema.js');
+const  { listingSchema }  = require('../schema.js');
 
 //Function for server side validation
 const validateListing = (req, res, next) => {
@@ -38,7 +38,13 @@ router.get('/:id', wrapAsync (async (req, res, next) => {
     try {
         let id = req.params.id;
         const hotel = await Listing.findById(id).populate('reviews');
-        res.status(200).render('./listing/show.ejs', { hotel });
+        if(!hotel) {
+            req.flash('error', 'Listing does not exist!');
+            res.redirect('/listing');
+        } else {
+            res.status(200).render('./listing/show.ejs', { hotel });
+        }
+
     } catch (err) {
         next(err);
     }
@@ -49,6 +55,7 @@ router.get('/:id', wrapAsync (async (req, res, next) => {
 router.post('/', validateListing, wrapAsync (async (req, res) => {
     const newList = new Listing(req.body.list);
     await newList.save()
+    req.flash("success", "New Listing created!.")
     res.redirect('/listing');
 
 }));
@@ -65,6 +72,7 @@ router.put('/:id', validateListing, wrapAsync( async (req, res) => {
     let id = req.params.id;
     let update = req.body.list;
     await Listing.findByIdAndUpdate(id,{...update})
+    req.flash("success", "Listing updated!.")
     res.redirect(`/listing/${id}`);
 }));
 
@@ -72,7 +80,8 @@ router.put('/:id', validateListing, wrapAsync( async (req, res) => {
 router.delete('/:id/delete', wrapAsync(async (req, res) => {
     let id = req.params.id;
     await Listing.findByIdAndDelete(id);
-    res.render('./listing/delete.ejs', { message: "Listing deleted successfully!" });
+    req.flash("success", "Listing deleted!.")
+    res.redirect(`/listing`);
 }));
 
 module.exports = router;
