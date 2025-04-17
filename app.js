@@ -27,7 +27,7 @@ let DbConnect = async () => {
 };
 
 app.listen(PORT, () => {
-    console.log(`http://localhost:${PORT}/home`);
+    console.log(`http://localhost:${PORT}/listing`);
 
     DbConnect().then(() => {
         console.log(`${process.env.MONGO_URI}`);
